@@ -1,5 +1,5 @@
 name: Test Action on PR
-run-name: "Test Action ${{((github.event_name == 'pull_request') && 'PR')"
+run-name: "Test Action ${{((github.event_name == 'pull_request') && 'PR')}}"
 
 # Triggers for the workflow
 on:
@@ -18,19 +18,22 @@ env:                # SOURCE BRANCH         TARGET BRANCH
 jobs: 
   branch_sel:
     name: Preprocessing
+    runs-on: ubuntu
     outputs:
-      branch_array: ${{((github.event_name == 'pull_request') && env.pr_branches)
+      branch_array: ${{((github.event_name == 'pull_request') && env.pr_branches)}}
     steps:
       - id: branch_selection
         run: 
-          echo ${{env.pr_branches}}
+          echo ${{ env.pr_branches }}
 
   run_test:
     name: test PR run
+    runs-on: ubuntu
+    needs: branch_sel
     strategy:
       fail-fast: false
       matrix:
-        branch: ${{ env.pr_branches }}
+        branch:  ${{ fromJson(needs.branch_sel.outputs.branch_array) }}
     steps:
       - name: 'Cleanup'
       # Remove all files including hidden files, || true ensure that command returns success even when there is nothing to remove
