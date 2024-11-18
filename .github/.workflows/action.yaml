@@ -1,0 +1,46 @@
+name: Test Action on PR
+run-name: "Test Action ${{((github.event_name == 'pull_request') && 'PR')"
+
+# Triggers for the workflow
+on:
+  workflow_call:
+
+  workflow_dispatch:
+
+  pull_request:
+    # branches:
+    #   - 'dev/**'
+
+  
+env:                # SOURCE BRANCH         TARGET BRANCH
+  pr_branches: "['${{github.head_ref}}','${{github.base_ref}}']"
+
+jobs: 
+  branch_sel:
+    name: Preprocessing
+    outputs:
+      branch_array: ${{((github.event_name == 'pull_request') && env.pr_branches)
+    steps:
+      - id: branch_selection
+        run: 
+          echo ${{env.pr_branches}}
+
+  run_test:
+    name: test PR run
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: ${{ env.pr_branches }}
+    steps:
+      - name: 'Cleanup'
+      # Remove all files including hidden files, || true ensure that command returns success even when there is nothing to remove
+        run: |
+          printenv
+          rm -rf ./* || true
+          rm -rf ./.??* || true
+          ls -la ./
+
+      - name: "Checkout"
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ matrix.branch }}
