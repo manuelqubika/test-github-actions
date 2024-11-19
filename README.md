@@ -9,3 +9,5 @@ This shouldn't run when:
   - Push code on any branch
 
   some text here
+  some other text
+  
