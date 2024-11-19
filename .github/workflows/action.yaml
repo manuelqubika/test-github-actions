@@ -21,7 +21,7 @@ jobs:
     name: Preprocessing
     runs-on: ubuntu-latest
     outputs:
-      branch_array: ${{ inputs.pr_branches)}}
+      branch_array: ${{ inputs.pr_branches }}
     steps:
       - id: branch_selection
         run: 
