@@ -13,6 +13,6 @@ env:                # SOURCE BRANCH         TARGET BRANCH
 
 jobs:
   test_oncall:
-    uses: manuelqubika/test-github-actions/.github/workflows/action.yml@main
+    uses: manuelqubika/test-github-actions/.github/workflows/action.yaml@main
     with:
       pr_branches: ${{ env.pr_branches }}
