@@ -4,6 +4,11 @@ run-name: "Test Action ${{((github.event_name == 'pull_request') && 'PR')}}"
 # Triggers for the workflow
 on:
   workflow_call:
+    inputs:
+      pr_branches:
+        required: true
+        default: ''
+        type: string
 
   workflow_dispatch:
 
@@ -11,20 +16,16 @@ on:
     branches:
       - 'dev/**'
 
-  
-env:                # SOURCE BRANCH         TARGET BRANCH
-  pr_branches: "['${{github.head_ref}}','${{github.base_ref}}']"
-
 jobs: 
   branch_sel:
     name: Preprocessing
     runs-on: ubuntu-latest
     outputs:
-      branch_array: ${{((github.event_name == 'pull_request') && env.pr_branches)}}
+      branch_array: ${{ inputs.pr_branches)}}
     steps:
       - id: branch_selection
         run: 
-          echo ${{ env.pr_branches }}
+          echo ${{ inputs.pr_branches }}
 
   run_test:
     name: test PR run
