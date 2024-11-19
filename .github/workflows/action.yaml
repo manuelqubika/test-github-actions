@@ -8,11 +8,8 @@ on:
     branches:
       - 'dev'
 
-env:                # SOURCE BRANCH         TARGET BRANCH
-  pr_branches: "['${{github.head_ref}}','${{github.base_ref}}']"
-
 jobs:
   test_oncall:
     uses: manuelqubika/test-github-actions/.github/workflows/action.yaml@main
     with:
-      pr_branches: ${{ env.pr_branches }}
+      pr_branches: "['${{ github.head_ref }}', '${{ github.base_ref }}']"
