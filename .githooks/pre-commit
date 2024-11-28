@@ -43,12 +43,10 @@
 
 
 
-### Check License
-
 #!/bin/bash
 
 # Define license template
-DEFAULT_LICENSE="// Copyright(C) YEAR_PLACEHOLDER Advanced Micro Devices, Inc. All rights reserved."
+DEFAULT_LICENSE="// Copyright(C) YEAR_PLACEHOLDER Some Company, Inc. All rights reserved"
 
 # Get the current year
 CURRENT_YEAR=$(date +"%Y")
@@ -57,7 +55,7 @@ CURRENT_YEAR=$(date +"%Y")
 MODIFIED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(h|c|cpp)$')
 
 # Check if there are no files to process
-if [ -z "$MODIFIED_FILES" ]; then
+if [[ -z "$MODIFIED_FILES" ]]; then
   exit 0
 fi
 
@@ -66,22 +64,24 @@ update_copyright_notice() {
   local file="$1"
   local updated=false
 
-  # Scan the file for existing copyright lines
-  while IFS= read -r line; do
-    if [ $line =~ "Copyright(C) ([0-9-]+)" ]; then
-      # Update the year in the existing copyright line
+  # Check for existing copyright
+  if grep -q "Copyright(C)" "$file"; then
+    # Extract the current copyright year or range
+    local existing_year
+    existing_year=$(grep -oE "Copyright\(C\) [0-9-]+" "$file" | awk '{print $2}')
+    if [[ -n "$existing_year" ]]; then
+      # Update the year in the file
+      sed -i "s/$existing_year/$CURRENT_YEAR/" "$file"
       updated=true
-      sed -i "s/${BASH_REMATCH[1]}/$CURRENT_YEAR/" "$file"
       echo "Updated copyright year in $file"
-      break
     fi
-  done < "$file"
+  fi
 
-  # If no copyright was found, add the default template at the top
+  # Add the default copyright if no existing one was found
   if ! $updated; then
     local copyright_line
     copyright_line=$(echo "$DEFAULT_LICENSE" | sed "s/YEAR_PLACEHOLDER/$CURRENT_YEAR/")
-    echo "$copyright_line\n$(cat "$file")" > "$file"
+    echo -e "$copyright_line\n$(cat "$file")" > "$file"
     echo "Added copyright to $file"
   fi
 }
