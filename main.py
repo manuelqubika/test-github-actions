@@ -1,6 +1,8 @@
-// Copyright(C) 2022 Some Company, Inc.. All rights reserved
 ## some comment
 ### Another comment
+
+
+
 import threading
 import webbrowser
 import BaseHTTPServer

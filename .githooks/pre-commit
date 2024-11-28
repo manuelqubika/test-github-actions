@@ -68,7 +68,7 @@ update_copyright_notice() {
 
   # Scan the file for existing copyright lines
   while IFS= read -r line; do
-    if [ $line =~ "Copyright(C) ([0-9-]+) Advanced Micro Devices, Inc. All rights reserved." ]; then
+    if [ $line =~ "Copyright(C) ([0-9-]+)" ]; then
       # Update the year in the existing copyright line
       updated=true
       sed -i "s/${BASH_REMATCH[1]}/$CURRENT_YEAR/" "$file"
@@ -81,7 +81,7 @@ update_copyright_notice() {
   if ! $updated; then
     local copyright_line
     copyright_line=$(echo "$DEFAULT_LICENSE" | sed "s/YEAR_PLACEHOLDER/$CURRENT_YEAR/")
-    echo -e "$copyright_line\n$(cat "$file")" > "$file"
+    echo "$copyright_line\n$(cat "$file")" > "$file"
     echo "Added copyright to $file"
   fi
 }
