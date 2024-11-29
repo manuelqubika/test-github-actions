@@ -42,8 +42,13 @@
 # git add $files
 
 
+
+
+### Check License
+set -x
+
 # Define license template
-DEFAULT_LICENSE="// Copyright(C) YEAR_PLACEHOLDER Some Company, Inc. All rights reserved"
+DEFAULT_LICENSE="// Copyright(C) YEAR_PLACEHOLDER Advanced Micro Devices, Inc. All rights reserved"
 
 # Get the current year
 CURRENT_YEAR=$(date +"%Y")
@@ -61,20 +66,18 @@ update_copyright_notice() {
   local file="$1"
   local updated=false
 
-  # Check for existing copyright
-  if grep -q "Copyright(C)" "$file"; then
-    # Extract the current copyright year or range
-    local existing_year
-    existing_year=$(grep -oE "Copyright\(C\) [0-9-]+" "$file" | awk '{print $2}')
-    if [[ -n "$existing_year" ]]; then
-      # Update the year in the file
-      sed -i "s/$existing_year/$CURRENT_YEAR/" "$file"
+  # Scan the file for existing copyright lines
+  while IFS= read -r line; do
+    if [[ $line =~ Copyright\ ([0-9-]+)\ Advanced\ Micro\ Devices ]]; then
+      # Update the year in the existing copyright line
       updated=true
+      sed -i "s/${BASH_REMATCH[1]}/$CURRENT_YEAR/" "$file"
       echo "Updated copyright year in $file"
+      break
     fi
-  fi
+  done < "$file"
 
-  # Add the default copyright if no existing one was found
+  # If no copyright was found, add the default template at the top
   if ! $updated; then
     local copyright_line
     copyright_line=$(echo "$DEFAULT_LICENSE" | sed "s/YEAR_PLACEHOLDER/$CURRENT_YEAR/")
@@ -91,4 +94,3 @@ for file in $MODIFIED_FILES; do
 done
 
 exit 0
-
