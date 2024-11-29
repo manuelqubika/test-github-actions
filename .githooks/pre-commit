@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # # Pre-commit hook for coding style
 # # The files the scripts operates upon (C/C++ source / header files)
@@ -41,9 +41,6 @@
 # # Add any changes made by astyle and format_code.py
 # git add $files
 
-
-
-#!/bin/bash
 
 # Define license template
 DEFAULT_LICENSE="// Copyright(C) YEAR_PLACEHOLDER Some Company, Inc. All rights reserved"
