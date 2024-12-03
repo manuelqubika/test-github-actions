@@ -1,4 +1,3 @@
-## some comment
 
 import threading
 import webbrowser
