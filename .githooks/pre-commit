@@ -67,7 +67,7 @@ update_copyright_notice() {
 
   # Scan the file for existing copyright lines
   while IFS= read -r line; do
-    if [[ $line =~ Copyright\ *\(C\)\ *([0-9-]+)\ +([a-zA-Z0-9\ ]+),\ +Inc\.* ]]; then
+    if [[ $line =~ Copyright\ *\([Cc]\)\ *([0-9-]+)\ +([a-zA-Z0-9\ ]+),\ +Inc\.* ]]; then
       # Update the year in the existing copyright line
       updated=true
       local existing_year="${BASH_REMATCH[1]}" # Extract year or range
