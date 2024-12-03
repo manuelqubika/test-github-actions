@@ -45,7 +45,6 @@
 
 
 ### Check License
-set -x
 
 # Define license template
 DEFAULT_LICENSE="// Copyright(C) YEAR_PLACEHOLDER Advanced Micro Devices, Inc. All rights reserved"
@@ -71,8 +70,22 @@ update_copyright_notice() {
     if [[ $line =~ Copyright\ *\(C\)\ *([0-9-]+)\ +([a-zA-Z0-9\ ]+),\ +Inc\.* ]]; then
       # Update the year in the existing copyright line
       updated=true
-      sed -i "s/${BASH_REMATCH[1]}/$CURRENT_YEAR/" "$file"
-      echo "Updated copyright year in $file"
+      local existing_year="${BASH_REMATCH[1]}" # Extract year or range
+
+      # Check if the year is a range
+      if [[ $existing_year =~ ([0-9]+)-([0-9]+) ]]; then
+        start_year="${BASH_REMATCH[1]}" # First year in the range
+        end_year="${BASH_REMATCH[2]}"   # Second year in the range
+
+        # Update only the end year to the current year
+        updated_year="${start_year}-${CURRENT_YEAR}"
+        sed -i "s/$existing_year/$updated_year/" "$file"
+        echo "Updated end year in $file: $updated_year"
+      else
+        # Single year case
+        sed -i "s/$existing_year/$CURRENT_YEAR/" "$file"
+        echo "Updated year in $file for: $CURRENT_YEAR"
+      fi
       break
     fi
   done < "$file"
