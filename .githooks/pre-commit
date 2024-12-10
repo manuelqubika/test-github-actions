@@ -1,0 +1,109 @@
+#!/bin/bash
+
+# # Pre-commit hook for coding style
+# # The files the scripts operates upon (C/C++ source / header files)
+
+# # Alter this line to change configuration
+# ASTYLE_PARAMETERS="--style=kr --indent=spaces=4 --convert-tabs --unpad-paren --lineend=linux --pad-comma --pad-oper --align-pointer=name --keep-one-line-statements --suffix=none"
+
+# # check if ASTYLE is installed, module add astyle
+# if ! command -v astyle >/dev/null 2>&1; then
+#     echo "astyle not installed, aborting commit. Install using module add astyle"
+#     exit 1
+# fi
+
+# # Define a relative path to format_code.py from the hook's location
+# RELATIVE_PATH_TO_PYTHON_SCRIPT="tools/format_code.py"
+
+# # Define an absolute path to format_code.py for submodules
+# ABSOLUTE_PATH_TO_PYTHON_SCRIPT="../tools/format_code.py"
+
+# # Check if the relative path script exists
+# if [ -f "$RELATIVE_PATH_TO_PYTHON_SCRIPT" ]; then
+#     SCRIPT_PATH="$RELATIVE_PATH_TO_PYTHON_SCRIPT"
+# elif [ -f "$ABSOLUTE_PATH_TO_PYTHON_SCRIPT" ]; then
+#     SCRIPT_PATH="$ABSOLUTE_PATH_TO_PYTHON_SCRIPT"
+# else
+#     echo "format_code.py not found in relative or absolute paths."
+#     exit 1  # Abort commit if the script is not found
+# fi
+
+# # Get a list of all staged source files
+# files=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(c|cpp|h|hpp)$')
+
+# for file in $files; do
+#     if [ -f "$file" ]; then
+#         astyle ${ASTYLE_PARAMETERS} $file
+#         python "$SCRIPT_PATH" $file
+#     fi
+# done
+
+# # Add any changes made by astyle and format_code.py
+# git add $files
+
+
+
+
+### Check License
+
+# Define license template
+DEFAULT_LICENSE="// Copyright(C) YEAR_PLACEHOLDER Advanced Micro Devices, Inc. All rights reserved"
+
+# Get the current year
+CURRENT_YEAR=$(date +"%Y")
+
+# Get a list of modified or newly added files with the specified extensions
+MODIFIED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(h|c|cpp)$')
+
+# Check if there are no files to process
+if [[ -z "$MODIFIED_FILES" ]]; then
+  exit 0
+fi
+
+# Function to check and update copyright in a file
+update_copyright_notice() {
+  local file="$1"
+  local updated=false
+
+  # Scan the file for existing copyright lines
+  while IFS= read -r line; do
+    if [[ $line =~ Copyright\ *\([Cc]\)\ *([0-9-]+)\ +([a-zA-Z0-9\ ]+),\ +Inc\.* ]]; then
+      # Update the year in the existing copyright line
+      updated=true
+      local existing_year="${BASH_REMATCH[1]}" # Extract year or range
+
+      # Check if the year is a range
+      if [[ $existing_year =~ ([0-9]+)-([0-9]+) ]]; then
+        start_year="${BASH_REMATCH[1]}" # First year in the range
+        end_year="${BASH_REMATCH[2]}"   # Second year in the range
+
+        # Update only the end year to the current year
+        updated_year="${start_year}-${CURRENT_YEAR}"
+        sed -i "s/$existing_year/$updated_year/" "$file"
+        echo "Updated end year in $file: $updated_year"
+      else
+        # Single year case
+        sed -i "s/$existing_year/$CURRENT_YEAR/" "$file"
+        echo "Updated year in $file for: $CURRENT_YEAR"
+      fi
+      break
+    fi
+  done < "$file"
+
+  # If no copyright was found, add the default template at the top
+  if ! $updated; then
+    local copyright_line
+    copyright_line=$(echo "$DEFAULT_LICENSE" | sed "s/YEAR_PLACEHOLDER/$CURRENT_YEAR/")
+    echo -e "$copyright_line\n$(cat "$file")" > "$file"
+    echo "Added copyright to $file"
+  fi
+}
+
+# Process each modified or newly added file
+for file in $MODIFIED_FILES; do
+  update_copyright_notice "$file"
+  # Add the modified file back to staging
+  git add "$file"
+done
+
+exit 0
