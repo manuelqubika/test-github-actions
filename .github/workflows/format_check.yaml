@@ -19,7 +19,7 @@ jobs:
           echo "${GITHUB_EVENT_PATH}"
 
       - name: Get list of changed files via API
-        id: changed-files
+        id: changed-files-api
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
