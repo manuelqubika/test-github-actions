@@ -4,7 +4,7 @@ on:
   pull_request:
 
 jobs:
-  run-script:
+  format_check:
     runs-on: ubuntu-latest
 
     steps:
