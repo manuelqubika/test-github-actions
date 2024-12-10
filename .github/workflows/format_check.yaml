@@ -26,9 +26,12 @@ jobs:
                        "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/files" \
                     | jq -r '.[].filename')
   
-          # Save files to an output variable
-          echo "Changed files: $FILES"
-          echo "::set-output name=files::$(echo $FILES | tr '\n' ',')"
+          # Filter files for .c, .h, and .cpp extensions
+          FILTERED_FILES=$(echo "$FILES" | grep -E '\.(c|h|cpp)$')
+
+          # Save filtered files to an output variable
+          echo "Filtered files: $FILTERED_FILES"
+          echo "::set-output name=files::$(echo $FILTERED_FILES | tr '\n' ',')"
 
 
       # Run the script for each file
