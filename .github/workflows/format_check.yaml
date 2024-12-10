@@ -11,15 +11,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Get changed files in the PR
-      - name: Get list of changed files
-        id: changed-files
-        run: |
-          # Get the list of files changed in the PR
-          echo "${GITHUB_EVENT_PATH}"
-
       - name: Get list of changed files via API
-        id: changed-files-api
+        id: changed-files
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -38,18 +31,11 @@ jobs:
           echo "::set-output name=files::$(echo $FILES | tr '\n' ',')"
 
 
-
-
-    #       CHANGED_FILES=$(jq -r '.pull_request.files | .[].filename' < "${GITHUB_EVENT_PATH}")
-    #       echo "${CHANGED_FILES}" > changed-files.txt
-    #       echo "Changed files: ${CHANGED_FILES}"
-    #       echo "::set-output name=files::$(cat changed-files.txt | tr '\n' ',')"
-
-    #   # Run the script for each file
-    #   - name: Run script for each file
-    #     run: |
-    #       # Read the changed files from the output
-    #       for FILE in $(echo "${{ steps.changed-files.outputs.files }}" | tr ',' '\n'); do
-    #         echo "Running script for file: $FILE"
-    #         ./tools/formatter.sh "$FILE"
-    #       done
+      # Run the script for each file
+      - name: Run script for each file
+        run: |
+          # Read the changed files from the output
+          for FILE in $(echo "${{ steps.changed-files.outputs.files }}" | tr ',' '\n'); do
+            echo "Running script for file: $FILE"
+            ./tools/formatter.sh "$FILE"
+          done
