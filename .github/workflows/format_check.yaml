@@ -11,6 +11,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        
       # Get changed files in the PR
       - name: Get list of changed files
         id: changed-files
