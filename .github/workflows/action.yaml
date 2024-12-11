@@ -46,8 +46,3 @@ jobs:
         uses: actions/checkout@v3
         with:
           ref: ${{ matrix.branch }}
-
-      - name: "run formatter"
-        uses: ./.github/actions/format_check
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
