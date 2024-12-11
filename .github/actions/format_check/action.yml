@@ -37,6 +37,7 @@ runs:
   steps:
     - name: Get list of changed files via API
       id: changed-files
+      shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
       run: |
@@ -61,6 +62,7 @@ runs:
     # Run the script for each file
     - name: Run script for each file
       id: run_script
+      shell: bash
       run: |
         # Read the changed files from the output
         for FILE in $(echo "${{ steps.changed-files.outputs.files }}" | tr ',' '\n'); do
