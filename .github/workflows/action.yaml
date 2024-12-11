@@ -14,7 +14,7 @@ on:
 
   pull_request:
     branches:
-      - 'dev/**'
+      - 'dev'
 
 jobs: 
   branch_sel:
@@ -43,9 +43,12 @@ jobs:
           rm -rf ./* || true
           rm -rf ./.??* || true
           ls -la ./
+          
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ matrix.branch }}
 
-jobs:
-  test_oncall:
-    uses: manuelqubika/test-github-actions/.github/workflows/action.yaml@main
-    with:
-      pr_branches: "['${{ github.head_ref }}', '${{ github.base_ref }}']"
+      - name: "run formatter"
+        uses: ./.github/actions/format_check
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
