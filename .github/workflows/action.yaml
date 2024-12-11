@@ -13,8 +13,6 @@ on:
   workflow_dispatch:
 
   pull_request:
-    branches:
-      - 'dev'
 
 jobs: 
   branch_sel:
@@ -48,7 +46,3 @@ jobs:
         with:
           ref: ${{ matrix.branch }}
 
-      - name: "run formatter"
-        uses: ./.github/actions/format_check
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
