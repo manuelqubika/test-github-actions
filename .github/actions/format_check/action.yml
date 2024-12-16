@@ -23,9 +23,13 @@
 name: Format checker
 description: Run precommit script to format check on all PR files
 inputs:
-  GITHUB_TOKEM:
+  GITHUB_TOKEN:
     description: HTTP Token to consume the github API
     required: true
+  DRY_RUN:
+    description: If true it wont make a commit, just show the diffs
+    requiered: false
+    default: false
 
 outputs:
   results:
@@ -56,8 +60,7 @@ runs:
 
         # Save filtered files to an output variable
         echo "Filtered files: $FILTERED_FILES"
-        echo "::set-output name=files::$(echo $FILTERED_FILES | tr '\n' ',')"
-
+        echo "files=$(echo $FILTERED_FILES | tr '\n' ',')" >> $GITHUB_OUTPUT
 
     # Run the script for each file
     - name: Run script for each file
@@ -67,5 +70,25 @@ runs:
         # Read the changed files from the output
         for FILE in $(echo "${{ steps.changed-files.outputs.files }}" | tr ',' '\n'); do
           echo "Running script for file: $FILE"
-          ./tools/formatter.sh "$FILE"
+          ./tools/format_code.py "$FILE" >> "$FILE.results" # Append results to .results file
         done
+
+      # Dry run or commit decision
+      - name: Dry Run or Commit
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          if [ "${{ env.DRY_RUN }}" == "true" ]; then
+            echo "Dry run enabled. Not committing changes."
+            git diff --stat # Show what would be committed
+          else
+            echo "Committing changes."
+            # Configure Git for commit
+            git config --global user.name "github-actions[bot]"
+            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+            # Commit and push changes
+            git add .
+            git commit -m "Add script results for PR #${{ github.event.pull_request.number }}"
+            git push origin HEAD:${{ github.head_ref }}
+          fi
