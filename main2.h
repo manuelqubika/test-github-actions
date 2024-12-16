@@ -10,4 +10,3 @@ conditions, express, implied, statutory or otherwise, and Advanced Micro Devices
 implied warranties of merchantability, non-infringement, or fitness for a particular purpose.
 
 */void function3() {}
-#ss
