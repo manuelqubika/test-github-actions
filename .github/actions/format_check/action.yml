@@ -90,7 +90,7 @@ runs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
           # Use GITHUB_TOKEN for authentication
-          git remote set-url origin https://x-access-token:${{ env.TOKEN }}@github.com/${{ github.repository }}
+          git remote set-url origin https://x-access-token:${{ env.TOKEN }}@github.com/${{ github.repository }}.git
 
           # Commit and push changes
           git add .
