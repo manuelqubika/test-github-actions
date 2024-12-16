@@ -43,7 +43,7 @@ runs:
       id: changed-files
       shell: bash
       env:
-        GITHUB_TOKEN: ${{ inputs.TOKEN }}
+        TOKEN: ${{ inputs.TOKEN }}
       run: |
         # Fetch the PR number from the event context
         PR_NUMBER=$(jq -r '.pull_request.number' < "${GITHUB_EVENT_PATH}")
