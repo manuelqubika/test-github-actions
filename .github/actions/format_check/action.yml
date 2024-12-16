@@ -77,7 +77,7 @@ runs:
     - name: Dry Run or Commit
       env:
         DRY_RUN: ${{ inputs.dry_run }}
-        GITHUB_TOKEN: ${{ inputs.TOKEN }}
+        TOKEN: ${{ inputs.TOKEN }}
       shell: bash
       run: |
         if [ "${{ env.DRY_RUN }}" == "true" ]; then
@@ -90,7 +90,7 @@ runs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
           # Use GITHUB_TOKEN for authentication
-          git remote set-url origin https://x-access-token:${{ env.TOKEN }}@github.com/${{ github.repository }}.git
+          git remote set-url origin https://x-access-token:${{ env.TOKEN }}@github.com/${{ github.repository }}
 
           # Commit and push changes
           git add .
