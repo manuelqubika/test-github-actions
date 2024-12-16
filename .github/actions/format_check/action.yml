@@ -73,22 +73,22 @@ runs:
           ./tools/format_code.py "$FILE" >> "$FILE.results" # Append results to .results file
         done
 
-      # Dry run or commit decision
-      - name: Dry Run or Commit
-        env:
-          DRY_RUN: ${{ inputs.dry_run }}
-        run: |
-          if [ "${{ env.DRY_RUN }}" == "true" ]; then
-            echo "Dry run enabled. Not committing changes."
-            git diff --stat # Show what would be committed
-          else
-            echo "Committing changes."
-            # Configure Git for commit
-            git config --global user.name "github-actions[bot]"
-            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+    # Dry run or commit decision
+    - name: Dry Run or Commit
+      env:
+        DRY_RUN: ${{ inputs.dry_run }}
+      run: |
+        if [ "${{ env.DRY_RUN }}" == "true" ]; then
+          echo "Dry run enabled. Not committing changes."
+          git diff --stat # Show what would be committed
+        else
+          echo "Committing changes."
+          # Configure Git for commit
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-            # Commit and push changes
-            git add .
-            git commit -m "Add script results for PR #${{ github.event.pull_request.number }}"
-            git push origin HEAD:${{ github.head_ref }}
-          fi
+          # Commit and push changes
+          git add .
+          git commit -m "Add script results for PR #${{ github.event.pull_request.number }}"
+          git push origin HEAD:${{ github.head_ref }}
+        fi
