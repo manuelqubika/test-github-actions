@@ -19,4 +19,4 @@ jobs:
     - name: "run formatter"
       uses: ./.github/actions/format_check
       with:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TOKEN: ${{ secrets.TOKEN }}
