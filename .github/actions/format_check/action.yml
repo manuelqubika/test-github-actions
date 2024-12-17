@@ -105,5 +105,5 @@ runs:
           # Commit and push changes
           git add .
           git commit -m "Add script results for PR #${{ github.event.pull_request.number }}"
-          git push origin HEAD:${{ github.head_ref }}
+          git push origin HEAD:${{ github.head_ref }} --force-with-lease
         fi
