@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
 ", argc);
 
     // Process command-line arguments
-    if (argc > 1) {
+    if(argc > 1) {
         printf("Arguments received:
 ");
         for (int i = 0; i < argc; i++) {
