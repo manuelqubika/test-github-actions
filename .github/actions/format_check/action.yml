@@ -88,9 +88,13 @@ runs:
       shell: bash
       run: |
         DIFF=$(git diff --stat)
-        echo $DIFF
+        if [ -z $DIFF ]; then
+          echo "Nothing changed, exiting"
+          exit
+        fi
         if [ "${{ env.DRY_RUN }}" == "true" ]; then
           echo "Dry run enabled. Not committing changes."
+          echo $DIF
           git diff --stat # Show what would be committed
         else
           echo "Committing changes."
