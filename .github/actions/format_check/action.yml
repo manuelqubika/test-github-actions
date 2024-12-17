@@ -74,9 +74,9 @@ runs:
         done
 
     
-    # # Debug runner
-    # - name: Setup tmate session
-    #   uses: mxschmitt/action-tmate@v3
+    # Debug runner
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
 
     # Dry run or commit decision
     - name: Dry Run or Commit
