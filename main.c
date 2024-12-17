@@ -1,3 +1,4 @@
+// Copyright(C) 2024 Advanced Micro Devices, Inc. All rights reserved
 #include <stdio.h>
 
 /* 
@@ -14,28 +15,35 @@ void placeholderFunction();
 
 int main(int argc, char *argv[]) {
     // Basic Program Initialization
-      printf("Placeholder C Program Version %s\n", VERSION);
-printf("Number of arguments: %d\n", argc);
+    printf("Placeholder C Program Version %s
+", VERSION);
+    printf("Number of arguments: %d
+", argc);
 
     // Process command-line arguments
-    if (argc > 1) {
-        printf("Arguments received:\n");
+    if(argc > 1) {
+        printf("Arguments received:
+");
         for (int i = 0; i < argc; i++) {
-            printf("  argv[%d]: %s\n", i, argv[i]);
+            printf("  argv[%d]: %s
+", i, argv[i]);
         }
     } else {
-        printf("No arguments provided.\n");
+        printf("No arguments provided.
+");
     }
 
     // Call a placeholder function
     placeholderFunction();
 
     // Exit program
-    printf("Program execution completed.\n");
-    return 0;
+    printf("Program execution completed.
+");
+    return0;
 }
 
 // Definition of placeholderFunction
 void placeholderFunction() {
-    printf("This is a placeholder function. Add your functionality here.\n");
+    printf("This is a placeholder function. Add your functionality here.
+");
 }
