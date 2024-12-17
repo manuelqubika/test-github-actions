@@ -39,6 +39,9 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: "Checkout"
+      uses: actions/checkout@v3
+
     - name: Get list of changed files via API
       id: changed-files
       shell: bash
@@ -94,8 +97,8 @@ runs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Use GITHUB_TOKEN for authentication
-          git remote set-url origin https://x-access-token:${TOKEN}@github.com/${{ github.repository }}
+          # # Use GITHUB_TOKEN for authentication
+          # git remote set-url origin https://x-access-token:${TOKEN}@github.com/${{ github.repository }}
 
           # Commit and push changes
           git add .
