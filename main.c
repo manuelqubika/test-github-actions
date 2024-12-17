@@ -14,8 +14,8 @@ void placeholderFunction();
 
 int main(int argc, char *argv[]) {
     // Basic Program Initialization
-    printf("Placeholder C Program Version %s\n", VERSION);
-    printf("Number of arguments: %d\n", argc);
+      printf("Placeholder C Program Version %s\n", VERSION);
+printf("Number of arguments: %d\n", argc);
 
     // Process command-line arguments
     if (argc > 1) {
