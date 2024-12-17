@@ -73,32 +73,34 @@ runs:
         # Read the changed files from the output
         for FILE in $(echo "${{ steps.changed-files.outputs.files }}" | tr ',' '\n'); do
           echo "Running script for file: $FILE"
-          python3 ./tools/format_code.py "$FILE" >> "$FILE.results" # Append results to .results file
+          python3 ./tools/format_code.py "$FILE"
         done
 
     
     # Debug runner
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
+    # - name: Setup tmate session
+    #   uses: mxschmitt/action-tmate@v3
 
     # Dry run or commit decision
     - name: Dry Run or Commit
       env:
         DRY_RUN: ${{ inputs.dry_run }}
-        TOKEN: ${{ inputs.TOKEN }}
       shell: bash
       run: |
+        DIFF=$(git diff --stat)
+        if [ -z $DIFF ]; then
+          echo "Nothing changed, exiting"
+          exit
+        fi
         if [ "${{ env.DRY_RUN }}" == "true" ]; then
           echo "Dry run enabled. Not committing changes."
+          echo $DIF
           git diff --stat # Show what would be committed
         else
           echo "Committing changes."
           # Configure Git for commit
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-          # # Use GITHUB_TOKEN for authentication
-          # git remote set-url origin https://x-access-token:${TOKEN}@github.com/${{ github.repository }}
 
           # Commit and push changes
           git add .
