@@ -73,7 +73,7 @@ runs:
         # Read the changed files from the output
         for FILE in $(echo "${{ steps.changed-files.outputs.files }}" | tr ',' '\n'); do
           echo "Running script for file: $FILE"
-          python3 ./tools/format_code.py "$FILE" >> "$FILE.results" # Append results to .results file
+          python3 ./tools/format_code.py "$FILE"
         done
 
     
