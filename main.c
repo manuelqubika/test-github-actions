@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
     // Exit program
     printf("Program execution completed.
 ");
-    return0;
+    return 0;
 }
 
 // Definition of placeholderFunction
