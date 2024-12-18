@@ -19,5 +19,4 @@ jobs:
     - name: "run formatter"
       uses: ./.github/actions/format_check
       with:
-        TOKEN: ${{ secrets.TOKEN }}
         DRY_RUN: false

@@ -23,9 +23,6 @@
 name: Format checker
 description: Run precommit script to format check on all PR files
 inputs:
-  TOKEN:
-    description: HTTP Token to consume the github API
-    required: true
   DRY_RUN:
     description: If true it wont make a commit, just show the diffs
     requiered: false
@@ -45,16 +42,13 @@ runs:
     - name: Get list of changed files via API
       id: changed-files
       shell: bash
-      env:
-        TOKEN: ${{ inputs.TOKEN }}
       run: |
         # Fetch the PR number from the event context
         PR_NUMBER=$(jq -r '.pull_request.number' < "${GITHUB_EVENT_PATH}")
 
         # Use the GitHub API to get the list of changed files
         echo "Fetching changed files for PR #$PR_NUMBER"
-        FILES=$(curl -s -H "Authorization: Bearer $TOKEN" \
-                  -H "Accept: application/vnd.github.v3+json" \
+        FILES=$(curl -s -H "Accept: application/vnd.github.v3+json" \
                       "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/files" \
                   | jq -r '.[].filename')
 
@@ -77,9 +71,9 @@ runs:
         done
 
     
-    # Debug runner
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
+    # # Debug runner
+    # - name: Setup tmate session
+    #   uses: mxschmitt/action-tmate@v3
 
     # Dry run or commit decision
     - name: Dry Run or Commit
