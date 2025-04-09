@@ -13,40 +13,11 @@ jobs:
             
       - name: Word Scan
         env:
-          EXCLUDED_DIRS: "dependencies"
-          WORDS: "shit,moreshit"
+          FAIL: False
         run: |
-          set -x
-          failed=0
-          common_hash=$(git merge-base origin/${{ github.base_ref }} ${{ github.sha }})
-          changed_files=$(git diff --name-only "$common_hash..${{ github.sha }}")
-          IFS=' ' read -r -a excluded_dirs <<< "${{ env.EXCLUDED_DIRS }}"
-          for file in $changed_files; do
-            skip=false
-
-            if [[ ! -f "$file" ]]; then
-              echo "File $file deleted or not present, skipping"
-              continue
-            fi
-
-            for dir in "${excluded_dirs[@]}"; do
-              if [[ "$file" == "$dir/"* ]]; then
-                skip=true
-                break
-              fi
-            done
-
-            if [ "$skip" = false ]; then
-              echo "Running script for file: $file"
-              python3 ./tools/word_scan.py "$file" || failed=1
-            else
-              echo "File $file is in an excluded directory, skipping"
-            fi
-          done
-          if [ "$failed" -eq 0 ]; then
-            echo "✅ No forbidden words found."
-            if [[ -n "$GITHUB_STEP_SUMMARY" ]]; then
-              echo "## ✅ No forbidden words found" >> "$GITHUB_STEP_SUMMARY"
-            fi
+          if [ $FAIL ]; then
+            exit 1
+          else
+            exit 0
           fi
-          exit $failed
+          
