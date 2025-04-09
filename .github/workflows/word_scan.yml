@@ -1,0 +1,76 @@
+# **********************************************************************************
+#  Copyright (C) 2025 Advanced Micro Devices, Inc.
+#
+#  Permission is hereby granted, free of charge, to any person obtaining a copy
+#  of this software and associated documentation files (the "Software"), to deal
+#  in the Software without restriction, including without limitation the rights
+#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#  copies of the Software, and to permit persons to whom the Software is
+#  furnished to do so, subject to the following conditions:
+#
+#  The above copyright notice and this permission notice shall be included in
+#  all copies or substantial portions of the Software.
+#
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
+#  THE COPYRIGHT HOLDER(S) OR AUTHOR(S) BE LIABLE FOR ANY CLAIM, DAMAGES OR
+#  OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+#  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+#  OTHER DEALINGS IN THE SOFTWARE.
+# **********************************************************************************
+# **********************************************************************************
+#  GitHub Action for required workflows for pull requests.
+# **********************************************************************************
+name: Cherry Pick Validation
+
+on:
+  pull_request:
+
+jobs:
+  validate-cherry-pick:
+    runs-on: ubuntu
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+            
+      - name: Word Scan
+        env:
+          EXCLUDED_DIRS: "dependencies"
+          WORDS: "shit,moreshit"
+        run: |
+          set -x
+          failed=0
+          common_hash=$(git merge-base origin/${{ github.base_ref }} ${{ github.sha }})
+          changed_files=$(git diff --name-only "$common_hash..${{ github.sha }}")
+          IFS=' ' read -r -a excluded_dirs <<< "${{ env.EXCLUDED_DIRS }}"
+          for file in $changed_files; do
+            skip=false
+
+            if [[ ! -f "$file" ]]; then
+              echo "File $file deleted or not present, skipping"
+              continue
+            fi
+
+            for dir in "${excluded_dirs[@]}"; do
+              if [[ "$file" == "$dir/"* ]]; then
+                skip=true
+                break
+              fi
+            done
+
+            if [ "$skip" = false ]; then
+              echo "Running script for file: $file"
+              python3 ./tools/word_scan.py "$file" || failed=1
+            else
+              echo "File $file is in an excluded directory, skipping"
+            fi
+          done
+          if [ "$failed" -eq 0 ]; then
+            echo "✅ No forbidden words found."
+            if [[ -n "$GITHUB_STEP_SUMMARY" ]]; then
+              echo "## ✅ No forbidden words found" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
+          exit $failed
