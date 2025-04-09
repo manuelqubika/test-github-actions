@@ -16,7 +16,7 @@ jobs:
           FAIL: false
         run: |
           set -x
-          if [ $FAIL ]; then
+          if [ $FAIL -eq "true" ]; then
             exit 1
           else
             exit 0
