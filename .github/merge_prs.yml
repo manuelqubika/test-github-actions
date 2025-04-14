@@ -1,0 +1,16 @@
+name: Cherry Pick Validation
+
+on:
+  push:
+    - branches: main
+
+jobs:
+  merge-pr:
+    runs-on: ubuntu-latest
+    env:
+      QUBIKA_GH_TOKEN: ${{ secrets.TOKEN }}
+    steps:
+      - name: Merge PRs
+        run: |
+          python3 tools/merge_commit.py
+
