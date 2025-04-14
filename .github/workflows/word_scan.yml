@@ -28,6 +28,9 @@ jobs:
     env:
       QUBIKA_GH_TOKEN: ${{ secrets.TOKEN }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
       - name: Merge PRs
         run: |
           python3 tools/merge_commit.py
