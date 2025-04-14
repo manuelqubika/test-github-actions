@@ -3,12 +3,20 @@ name: Cherry Pick Validation
 on:
   push:
     - branches: main
+    
+  workflow_dispatch:
+    inputs:
+      REVIEWER_EMAIL:
+        required: true
+        type: string
+
 
 jobs:
   merge-pr:
     runs-on: ubuntu-latest
     env:
       QUBIKA_GH_TOKEN: ${{ secrets.TOKEN }}
+      REVIEWER_EMAIL: ${{ inputs.REVIEWER_EMAIL }}
     steps:
       - name: Merge PRs
         run: |
