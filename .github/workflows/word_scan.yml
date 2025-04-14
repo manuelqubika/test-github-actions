@@ -13,7 +13,7 @@ jobs:
             
       - name: Word Scan
         env:
-          FAIL: false
+          FAIL: true
         run: |
           set -x
           if [ $FAIL == "true" ]; then
