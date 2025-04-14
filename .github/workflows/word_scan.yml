@@ -16,7 +16,7 @@ jobs:
           FAIL: false
         run: |
           set -x
-          wait(480)
+          sleep 480
           if [ $FAIL == "true" ]; then
             exit 1
           else
