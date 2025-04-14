@@ -22,4 +22,13 @@ jobs:
           else
             exit 0
           fi
+  merge-pr:
+    runs-on: ubuntu-latest
+    needs: validate-cherry-pick
+    env:
+      QUBIKA_GH_TOKEN: ${{ secrets.TOKEN }}
+    steps:
+      - name: Merge PRs
+        run: |
+          python3 tools/merge_commit.py
 
