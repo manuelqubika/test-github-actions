@@ -1,0 +1,28 @@
+name: Cherry Pick Validation
+
+on:
+  push:
+    branches:
+      - main
+    
+  workflow_dispatch:
+    inputs:
+      REVIEWER_EMAIL:
+        required: true
+        type: string
+jobs:
+  merge-pr:
+    runs-on: ubuntu-latest
+    env:
+      QUBIKA_GH_TOKEN: ${{ secrets.TOKEN }}
+      REVIEWER_EMAIL: manuel.luna@qubika.com
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Merge PRs
+        run: |
+          python3 tools/merge_commit.py
+
