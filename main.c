@@ -41,9 +41,3 @@ int main(int argc, char *argv[]) {
 ");
     return0;
 }
-
-// Definition of placeholderFunction
-void placeholderFunction() {
-    printf("This is a placeholder function. Add your functionality here.
-");
-}
