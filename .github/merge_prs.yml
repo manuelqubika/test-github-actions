@@ -9,7 +9,6 @@ on:
       REVIEWER_EMAIL:
         required: true
         type: string
-
 jobs:
   merge-pr:
     runs-on: ubuntu-latest
