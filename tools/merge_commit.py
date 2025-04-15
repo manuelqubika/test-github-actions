@@ -1,27 +1,31 @@
 import requests
 import time
 import os
-import argparse
+import re
 from datetime import datetime, timedelta
-
-
 
 # Configuration
 GITHUB_TOKEN = os.getenv("QUBIKA_GH_TOKEN")
 REPO_OWNER = "manuelqubika"
 REPO_NAME = "test-github-actions"
 REVIEWER_EMAIL = os.getenv("REVIEWER_EMAIL")
+BASE_BRANCH = os.getenv("BASE_BRANCH", "main")     # Default base branch to merge into
 
 HEADERS = {
     "Authorization": f"token {GITHUB_TOKEN}",
     "Accept": "application/vnd.github.v3+json"
 }
 
+# Pattern for cherry-pick PRs
+CHERRY_PICK_PATTERN = re.compile(r'^SWSWV-\d+:.*Cherry-Pick', re.IGNORECASE)
+
 def get_open_pull_requests():
-    url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/pulls?state=open"
+    """Get all open PRs sorted by PR number (ascending)"""
+    url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/pulls?state=open&sort=created&direction=asc"
     response = requests.get(url, headers=HEADERS)
     response.raise_for_status()
-    return response.json()
+    prs = response.json()
+    return sorted(prs, key=lambda x: x["number"])
 
 def get_pr_details(pr_number):
     url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/pulls/{pr_number}"
@@ -29,31 +33,54 @@ def get_pr_details(pr_number):
     response.raise_for_status()
     return response.json()
 
-def get_running_checks(pr_number):
-    # Get check runs for the PR
-    url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/commits/{pr_number}/check-runs"
+def get_check_runs(pr_number):
+    """Get all check runs for a PR"""
+    pr_details = get_pr_details(pr_number)
+    head_sha = pr_details["head"]["sha"]
+    
+    url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/commits/{head_sha}/check-runs"
     response = requests.get(url, headers=HEADERS)
     response.raise_for_status()
-    data = response.json()
-    
-    running_checks = [check for check in data.get("check_runs", []) 
-                     if check["status"] != "completed"]
-    return running_checks
+    return response.json().get("check_runs", [])
+
+def enable_auto_merge(pr_number, merge_method="squash"):
+    """Enable auto-merge for the PR"""
+    url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/pulls/{pr_number}/merge"
+    data = {
+        "merge_method": merge_method,
+        "auto_merge": True
+    }
+    response = requests.put(url, headers=HEADERS, json=data)
+    return response
 
 def wait_for_checks_to_complete(pr_number, max_wait_minutes=30):
+    """Wait for checks to complete with timeout"""
     start_time = datetime.now()
+    last_status = ""
+    
     while datetime.now() - start_time < timedelta(minutes=max_wait_minutes):
-        running_checks = get_running_checks(pr_number)
-        if not running_checks:
-            return True
+        check_runs = get_check_runs(pr_number)
+        running_checks = [c for c in check_runs if c["status"] != "completed"]
+        failed_checks = [c for c in check_runs if c["conclusion"] == "failure"]
         
-        print(f"Waiting for {len(running_checks)} checks to complete...")
-        print("Still running:", ", ".join([check["name"] for check in running_checks]))
+        if failed_checks:
+            return False, failed_checks
+        
+        if not running_checks:
+            return True, []
+        
+        # Only print status if it changed
+        current_status = f"Waiting for {len(running_checks)} checks: " + ", ".join([c["name"] for c in running_checks])
+        if current_status != last_status:
+            print(current_status)
+            last_status = current_status
+        
         time.sleep(30)
     
-    return False
+    return False, []
 
 def is_mergeable(pr_number):
+    """Check if PR is mergeable with retries"""
     max_retries = 3
     retry_delay = 2  # seconds
     
@@ -68,6 +95,7 @@ def is_mergeable(pr_number):
     return False
 
 def add_reviewer(pr_number, reviewer_email):
+    """Add reviewer to PR by email"""
     # First find the GitHub username from email
     search_url = f"https://api.github.com/search/users?q={reviewer_email}+in:email"
     response = requests.get(search_url, headers=HEADERS)
@@ -92,36 +120,64 @@ def add_reviewer(pr_number, reviewer_email):
         print(f"Failed to add reviewer. Status code: {response.status_code}")
         return False
 
-def merge_pull_request(pr_number, commit_title):
-    url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/pulls/{pr_number}/merge"
-    data = {
-        "merge_method": "squash",
-        "commit_title": commit_title,
-    }
-    response = requests.put(url, headers=HEADERS, json=data)
-    return response
+def is_cherry_pick_pr(pr_title):
+    """Check if PR title matches the cherry-pick pattern"""
+    return bool(CHERRY_PICK_PATTERN.match(pr_title))
 
-def handle_blocked_pr(pr_number, pr_title):
-    print(f"PR #{pr_number} is blocked from merging")
+def process_pr(pr):
+    """Process a single PR"""
+    pr_number = pr["number"]
+    pr_title = pr["title"]
+    base_branch = pr["base"]["ref"]
     
-    # First check if there are running checks
-    running_checks = get_running_checks(pr_number)
-    if running_checks:
-        print(f"Waiting for {len(running_checks)} checks to complete...")
-        if wait_for_checks_to_complete(pr_number):
-            # Checks completed, check mergeability again
-            if is_mergeable(pr_number):
-                print("Checks completed, PR is now mergeable")
-                return merge_pull_request(pr_number, pr_title)
+    print(f"\nProcessing PR #{pr_number}: {pr_title} (target: {base_branch})")
     
-    # If still not mergeable, add reviewer
-    if REVIEWER_EMAIL:
-        print(f"Adding reviewer {REVIEWER_EMAIL} to PR #{pr_number}")
-        add_reviewer(pr_number, REVIEWER_EMAIL)
+    # Check if PR is targeting main and has cherry-pick in title
+    if base_branch != BASE_BRANCH or not is_cherry_pick_pr(pr_title):
+        print(f"Skipping PR #{pr_number} - doesn't match criteria")
+        return False
+    
+    # Check mergeability
+    if not is_mergeable(pr_number):
+        print("PR is not immediately mergeable, checking for running checks...")
+        checks_completed, failed_checks = wait_for_checks_to_complete(pr_number)
+        
+        if failed_checks:
+            print(f"PR #{pr_number} has failed checks:")
+            for check in failed_checks:
+                print(f"- {check['name']}: {check.get('output', {}).get('title', 'No details')}")
+            
+            if REVIEWER_EMAIL:
+                print(f"Adding reviewer due to failed checks")
+                add_reviewer(pr_number, REVIEWER_EMAIL)
+            return False
+        
+        if not checks_completed:
+            print("Checks didn't complete in time")
+            if REVIEWER_EMAIL:
+                print(f"Adding reviewer due to timeout")
+                add_reviewer(pr_number, REVIEWER_EMAIL)
+            return False
+        
+        # Re-check mergeability after checks complete
+        if not is_mergeable(pr_number):
+            print("PR is still not mergeable after checks completed")
+            if REVIEWER_EMAIL:
+                print(f"Adding reviewer due to mergeability issues")
+                add_reviewer(pr_number, REVIEWER_EMAIL)
+            return False
+    
+    # Enable auto-merge
+    print("PR is mergeable, enabling auto-merge...")
+    response = enable_auto_merge(pr_number)
+    
+    if response.status_code == 200:
+        print(f"Successfully enabled auto-merge for PR #{pr_number}")
+        return True
     else:
-        print("No REVIEWER_EMAIL set, skipping reviewer assignment")
-    
-    return None
+        print(f"Failed to enable auto-merge. Status code: {response.status_code}")
+        print(f"Response: {response.json()}")
+        return False
 
 def main():
     if not GITHUB_TOKEN:
@@ -133,23 +189,7 @@ def main():
         print(f"Found {len(pull_requests)} open pull requests")
         
         for pr in pull_requests:
-            pr_number = pr["number"]
-            pr_title = pr["title"]
-            print(f"\nProcessing PR #{pr_number}: {pr_title}")
-            
-            if is_mergeable(pr_number):
-                print("PR is mergeable. Attempting to squash merge...")
-                response = merge_pull_request(pr_number, pr_title)
-                
-                if response.status_code == 200:
-                    print(f"Successfully merged PR #{pr_number}")
-                else:
-                    print(f"Failed to merge PR #{pr_number}. Status code: {response.status_code}")
-                    print(f"Response: {response.json()}")
-            else:
-                result = handle_blocked_pr(pr_number, pr_title)
-                if result and result.status_code == 200:
-                    print(f"Successfully merged PR #{pr_number} after waiting")
+            process_pr(pr)
     
     except requests.exceptions.RequestException as e:
         print(f"An error occurred: {e}")
