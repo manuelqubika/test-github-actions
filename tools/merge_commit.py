@@ -98,10 +98,41 @@ def add_reviewer(pr_number, reviewer_username):
     url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/pulls/{pr_number}/requested_reviewers"
     data = {
         "reviewers": [reviewer_username]
-    }
-    response = requests.post(url, headers=HEADERS, json=data)
+
+def get_github_usernames(emails):
+    """Convert email addresses to GitHub usernames"""
+    usernames = []
+    for email in emails:
+        email = email.strip()
+        if not email:
+            continue
+            
+        search_url = f"https://api.github.com/search/users?q={email}+in:email"
+        response = requests.get(search_url, headers=HEADERS)
+        
+        if response.status_code == 200 and response.json().get("items"):
+            usernames.append(response.json()["items"][0]["login"])
+        else:
+            print(f"Could not find GitHub user with email {email}")
     
-    if response.status_code == 201:
+    return usernames
+
+def add_reviewers(pr_number, reviewer_emails):
+    """Add multiple reviewers to PR by email"""
+    if not reviewer_emails:
+        print("No reviewer emails provided")
+        return False
+    
+    # Convert emails to GitHub usernames
+    reviewers = get_github_usernames(reviewer_emails)
+    if not reviewers:
+        print("No valid reviewers found")
+        return False
+    
+    # Add the reviewers
+    url = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}/pulls/{pr_number}/requested_reviewers"
+    data = {
+        "reviewers": reviewers
         print(f"Added reviewer {reviewer_username} to PR #{pr_number}")
         return True
     else:
@@ -179,7 +210,6 @@ def main():
     try:
         pull_requests = get_open_pull_requests()
         print(f"Found {len(pull_requests)} open pull requests")
-        
         for pr in pull_requests:
             process_pr(pr)
     
