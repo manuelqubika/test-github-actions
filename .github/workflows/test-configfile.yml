@@ -13,15 +13,16 @@ jobs:
       - id: set-matrix
         run: |
             files=$(find .github/configs -name '*.json' -exec basename {} \;)
-            json_array=$(echo "$files" | jq -R . | jq -s .)
-            printf "matrix=%s\n" "$(jq -n --argjson arr "$json_array" '{config: $arr}')" >> "$GITHUB_OUTPUT"
+            matrix=$(echo "$files" | jq -R . | jq -s .)
+            echo "matrix=$matrix" >> $GITHUB_OUTPUT
         shell: bash
 
   run-for-each-config:
     needs: generate-matrix
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+      matrix:
+        config: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
 
