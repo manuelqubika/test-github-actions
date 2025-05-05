@@ -12,7 +12,8 @@ jobs:
 
       - id: set-matrix
         run: |
-          files=$(find .github/configs -name '*.json' -exec basename {} \;)
+          files="medusa.json soundwave.json"
+          #files=$(find .github/configs -name '*.json' -exec basename {} \;)
           matrix=$(jq -n --argjson list "$(echo \"$files\" | jq -R -s -c 'split("\n")[:-1]')" '{config: $list}')
           echo "matrix=$files" >> $GITHUB_OUTPUT
         shell: bash
