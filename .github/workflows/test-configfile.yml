@@ -1,22 +1,38 @@
-name: Load Config from JSON
+name: Run Matrix for Configs
 
 on: [push]
 
 jobs:
-  load-config-job:
+  generate-matrix:
     runs-on: ubuntu-latest
-
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-      - name: Load environment variables from config.json
+      - id: set-matrix
+        run: |
+          files=$(find .github/configs -name '*.json' -exec basename {} \;)
+          matrix=$(jq -n --argjson list "$(echo \"$files\" | jq -R -s -c 'split("\n")[:-1]')" '{config: $list}')
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
+        shell: bash
+
+  run-for-each-config:
+    needs: generate-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Load env from ${{ matrix.config }}
         uses: ./.github/actions/load_config_file
         with:
-          file: .github/configs/config.json
+          file: .github/configs/${{ matrix.config }}
 
-      - name: Use the environment variables
+      - name: Show loaded env
         run: |
           echo "ENV_1 is $ENV_1"
           echo "ENV_2 is $ENV_2"
           echo "ENV_3 is $ENV_3"
+
