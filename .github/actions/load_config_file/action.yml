@@ -8,6 +8,7 @@ runs:
   using: "composite"
   steps:
     - name: Read JSON and export variables
+      shell: bash
       run: |
         set -e
         set -x
