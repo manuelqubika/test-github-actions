@@ -10,16 +10,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Read JSON and export variables
-        run: |
-          set -x
-          pwd
-          ls .github/configs/config.json
-          cat .github/configs/config.json
-          for row in $(jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' .github/configs/config.json); do
-            echo "Exporting $row"
-            echo "$row" >> $GITHUB_ENV
-          done
+      - name: Load environment variables from config.json
+        uses: ./.github/actions/load_config_file
+        with:
+          file: .github/configs/config.json
 
       - name: Use the environment variables
         run: |
