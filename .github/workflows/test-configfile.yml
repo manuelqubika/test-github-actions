@@ -12,6 +12,8 @@ jobs:
 
       - name: Read JSON and export variables
         run: |
+          ls .github/configs/config.json
+          cat .github/configs/config.json
           for row in $(jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' .github/configs/config.json); do
             echo "Exporting $row"
             echo "$row" >> $GITHUB_ENV
