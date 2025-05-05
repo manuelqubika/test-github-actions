@@ -13,8 +13,8 @@ jobs:
       - id: set-matrix
         run: |
             files=$(find .github/configs -name '*.json' -exec basename {} \;)
-            matrix=$(echo "$files" | jq -R . | jq -s .)
-            echo "matrix=$matrix" >> $GITHUB_OUTPUT
+            matrix=$(printf '%s\n' $files | jq -R -s -c 'split("\n")[:-1]')
+            echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
         shell: bash
 
   run-for-each-config:
