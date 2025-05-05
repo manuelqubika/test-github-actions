@@ -14,8 +14,7 @@ jobs:
         run: |
             files=$(find .github/configs -name '*.json' -exec basename {} \;)
             json_array=$(echo "$files" | jq -R . | jq -s .)
-            echo "Matrix: $json_array"
-            echo "matrix={\"config\": $json_array}" >> $GITHUB_OUTPUT
+            printf "matrix=%s\n" "$(jq -n --argjson arr "$json_array" '{config: $arr}')" >> "$GITHUB_OUTPUT"
         shell: bash
 
   run-for-each-config:
