@@ -1,0 +1,24 @@
+name: Load Config from JSON
+
+on: [push]
+
+jobs:
+  load-config-job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Read JSON and export variables
+        run: |
+          for row in $(jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' .github/configs/config.json); do
+            echo "Exporting $row"
+            echo "$row" >> $GITHUB_ENV
+          done
+
+      - name: Use the environment variables
+        run: |
+          echo "ENV_1 is $ENV_1"
+          echo "ENV_2 is $ENV_2"
+          echo "ENV_3 is $ENV_3"
