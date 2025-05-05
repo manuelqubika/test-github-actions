@@ -12,17 +12,17 @@ jobs:
 
       - id: set-matrix
         run: |
-          files="medusa.json soundwave.json"
-          #files=$(find .github/configs -name '*.json' -exec basename {} \;)
-          matrix=$(jq -n --argjson list "$(echo \"$files\" | jq -R -s -c 'split("\n")[:-1]')" '{config: $list}')
-          echo "matrix=$files" >> $GITHUB_OUTPUT
+            files=$(find .github/configs -name '*.json' -exec basename {} \;)
+            json_array=$(echo "$files" | jq -R . | jq -s .)
+            echo "Matrix: $json_array"
+            echo "matrix={\"config\": $json_array}" >> $GITHUB_OUTPUT
         shell: bash
 
   run-for-each-config:
     needs: generate-matrix
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ needs.generate-matrix.outputs.matrix }}
+      matrix: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v3
 
